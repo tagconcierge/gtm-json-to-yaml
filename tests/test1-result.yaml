@@ -1,0 +1,209 @@
+folders:
+  - &ref_0
+    name: GTM Preset - GA4 Advanced
+  - &ref_1
+    name: GTM Ecommerce Advanced
+  - &ref_4
+    name: GTM Preset - FBP Advanced
+customTemplates: []
+builtInVariables: []
+variables:
+  - name: GA4 Measurement ID
+    type: c
+    parameter:
+      - type: TEMPLATE
+        key: value
+        value: G-1234567890
+    formatValue: {}
+    parentFolderId: *ref_0
+  - name: GA4 Ecommerce Items
+    type: jsm
+    parameter:
+      - type: TEMPLATE
+        key: javascript
+        value: |-
+          function() {
+            // Create a copy of the variable to avoid
+            // modifying the source object by reference
+            var ecommerce = JSON.parse(JSON.stringify({{GA4 Ecommerce}}));
+
+          return ecommerce.items.map(function (item) {
+          // If `id` property is not set as extra property in plugin
+          // then set item_id as id (Google Ads Remarketing requirement)
+          if ('undefined' === typeof item.id) {
+          item.id = item.item_id;
+          }
+          return item;
+          });
+          }
+    formatValue: {}
+    parentFolderId: *ref_1
+  - name: GA4 Ecommerce
+    type: v
+    parameter:
+      - type: INTEGER
+        key: dataLayerVersion
+        value: '1'
+      - type: BOOLEAN
+        key: setDefaultValue
+        value: 'false'
+      - type: TEMPLATE
+        key: name
+        value: ecommerce
+    formatValue: {}
+    parentFolderId: *ref_1
+  - name: GA4 User ID
+    type: v
+    parameter:
+      - type: INTEGER
+        key: dataLayerVersion
+        value: '2'
+      - type: BOOLEAN
+        key: setDefaultValue
+        value: 'false'
+      - type: TEMPLATE
+        key: name
+        value: user_id
+    formatValue: {}
+    parentFolderId: *ref_1
+triggers:
+  - &ref_2
+    name: GA4 Ecommerce View Item Event
+    type: CUSTOM_EVENT
+    customEventFilter:
+      - type: EQUALS
+        parameter:
+          - type: TEMPLATE
+            key: arg0
+            value: '{{_event}}'
+          - type: TEMPLATE
+            key: arg1
+            value: view_item
+    parentFolderId: *ref_1
+  - &ref_3
+    name: GA4 Ecommerce Add To Cart Event
+    type: CUSTOM_EVENT
+    customEventFilter:
+      - type: EQUALS
+        parameter:
+          - type: TEMPLATE
+            key: arg0
+            value: '{{_event}}'
+          - type: TEMPLATE
+            key: arg1
+            value: add_to_cart
+    parentFolderId: *ref_1
+tags:
+  - name: GA4 Configuration Tag
+    type: googtag
+    parameter:
+      - type: TEMPLATE
+        key: tagId
+        value: '{{GA4 Measurement ID}}'
+      - type: LIST
+        key: configSettingsTable
+        list:
+          - type: MAP
+            map:
+              - type: TEMPLATE
+                key: parameter
+                value: user_id
+              - type: TEMPLATE
+                key: parameterValue
+                value: '{{GA4 User ID}}'
+          - type: MAP
+            map:
+              - type: TEMPLATE
+                key: parameter
+                value: send_page_view
+              - type: TEMPLATE
+                key: parameterValue
+                value: 'true'
+    firingTriggerId:
+      - '2147479553'
+    parentFolderId: *ref_0
+    tagFiringOption: ONCE_PER_EVENT
+    consentSettings:
+      consentStatus: NOT_SET
+    monitoringMetadata:
+      type: MAP
+  - name: GA4 Ecommerce View Item Tag
+    type: gaawe
+    parameter:
+      - type: LIST
+        key: eventSettingsTable
+        list:
+          - type: MAP
+            map:
+              - type: TEMPLATE
+                key: parameter
+                value: items
+              - type: TEMPLATE
+                key: parameterValue
+                value: '{{GA4 Ecommerce Items}}'
+      - type: TEMPLATE
+        key: eventName
+        value: view_item
+      - type: TEMPLATE
+        key: measurementIdOverride
+        value: '{{GA4 Measurement ID}}'
+    firingTriggerId:
+      - *ref_2
+    parentFolderId: *ref_0
+    tagFiringOption: ONCE_PER_EVENT
+    consentSettings:
+      consentStatus: NOT_SET
+    monitoringMetadata:
+      type: MAP
+  - name: FBP AddToCart Tag
+    type: html
+    parameter:
+      - type: TEMPLATE
+        key: html
+        value: |-
+          <script>
+
+            function transformItemToContent(item) {
+              var i = 0
+              var categoryProp = 'item_category';
+              var categories = [];
+              while (item.hasOwnProperty(categoryProp)) {
+                categories.push(item[categoryProp]);
+                i = i + 1;
+                categoryProp = 'item_category_' + i;
+              }
+              return {
+                id: item.item_id,
+                quantity: item.quantity,
+              };
+            }
+
+            function transformItemsToContents(items) {
+              return items.map(function(item) {
+                return transformItemToContent(item);
+              });
+            }
+
+          fbq('track', 'AddToCart',
+            // begin parameter object data
+            {
+              contents: transformItemsToContents({{GA4 Ecommerce Items}}),
+              content_type: 'product'
+            }
+            // end parameter object data
+          );
+          </script>
+      - type: BOOLEAN
+        key: supportDocumentWrite
+        value: 'false'
+    firingTriggerId:
+      - *ref_3
+    parentFolderId: *ref_4
+    tagFiringOption: ONCE_PER_EVENT
+    consentSettings:
+      consentStatus: NEEDED
+      consentType:
+        type: LIST
+        list:
+          - type: TEMPLATE
+            value: ad_storage

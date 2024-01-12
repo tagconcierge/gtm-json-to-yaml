@@ -1,0 +1,13 @@
+{
+  "name": "gtm-json-to-yaml",
+  "version": "0.1.0",
+  "description": "Convert GTM JSON import/export file to/from human readable YAML.",
+  "keywords": [
+    "yaml",
+    "parser",
+    "google tag manager",
+    "json"
+  ],
+  "license": "MIT",
+  "dependencies": { "js-yaml": "^4.1.0" }
+}
