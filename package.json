@@ -1,5 +1,5 @@
 {
-  "name": "gtm-json-to-yaml",
+  "name": "@tagconcierge/gtm-json-to-yaml",
   "version": "0.1.0",
   "description": "Convert GTM JSON import/export file to/from human readable YAML.",
   "keywords": [
@@ -9,5 +9,24 @@
     "json"
   ],
   "license": "MIT",
-  "dependencies": { "js-yaml": "^4.1.0" }
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "main": "src/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tagconcierge/gtm-json-to-yaml.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/tagconcierge/gtm-json-to-yaml/issues"
+  },
+  "homepage": "https://github.com/tagconcierge/gtm-json-to-yaml#readme"
 }
